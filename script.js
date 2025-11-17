@@ -121,7 +121,9 @@ supabaseClient.auth.onAuthStateChange((_event, _session) => {
 });
 
 // Initial check on page load
-checkAuth();
+handleRedirectFromSupabase().then(() => {
+  checkAuth();
+});
 
 // ===== End Supabase Auth Setup =====
 

@@ -30,16 +30,15 @@ if (simpleLoginBtn) {
     const pass = loginPassword.value;
 
     if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
-      loginMessage.textContent = '';
+      if (loginMessage) loginMessage.textContent = '';
       showApp();
     } else {
-      loginMessage.textContent = 'Invalid username or password.';
+      if (loginMessage) loginMessage.textContent = 'Invalid username or password.';
     }
   });
 }
 
 // ===== End simple gate =====
-
 
 // ===== Existing dashboard logic =====
 

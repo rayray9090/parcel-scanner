@@ -7,36 +7,36 @@
   <script src="script.js"></script>
 </head>
 <body>
-  <body>
+  <!-- Login screen -->
   <div id="login-screen" class="login-screen">
-  <div class="login-card">
-    <h1>ParcelScan</h1>
-    <p>Please sign in to continue.</p>
+    <div class="login-card">
+      <h1>ParcelScan</h1>
+      <p>Please sign in to continue.</p>
 
-    <input
-      id="loginUsername"
-      type="text"
-      placeholder="Username"
-      class="login-input"
-    />
-    <input
-      id="loginPassword"
-      type="password"
-      placeholder="Password"
-      class="login-input"
-    />
+      <input
+        id="loginUsername"
+        type="text"
+        placeholder="Username"
+        class="login-input"
+      />
+      <input
+        id="loginPassword"
+        type="password"
+        placeholder="Password"
+        class="login-input"
+      />
 
-    <button id="simpleLoginBtn" class="btn-primary">
-      Sign in
-    </button>
+      <button id="simpleLoginBtn" class="btn-primary">
+        Sign in
+      </button>
 
-    <p id="loginMessage" class="login-message"></p>
+      <p id="loginMessage" class="login-message"></p>
+    </div>
   </div>
-</div>
 
-<!-- App (hidden until logged in) -->
-<div id="app" class="hidden">
-  <!-- your existing sidebar + dashboard HTML stays here -->
+  <!-- App (hidden until logged in) -->
+  <div id="app" class="hidden">
+    <!-- 💡 keep ALL your existing sidebar + dashboard markup inside this #app div -->
 
     <!-- Sidebar -->
     <aside class="sidebar">

@@ -1,26 +1,37 @@
 // ===== Supabase Auth Setup =====
 
-// Replace these with your real values from Supabase Settings → API
-const SUPABASE_URL = 'https://jmphpdcacxqznthczhlz.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_GEjsx9hhP5ti88OHKkTvEw_3-GiQ_Iy';
+// Put YOUR real values here:
+const SUPABASE_URL = 'https://YOURPROJECTID.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_YOUR_KEY_HERE';
 
-const { createClient } = window.supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Make sure the Supabase library exists
+if (!window.supabase) {
+  console.error('Supabase JS library not loaded');
+}
+
+// Create the client
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 const loginScreen = document.getElementById('login-screen');
 const app = document.getElementById('app');
 const googleLoginBtn = document.getElementById('googleLoginBtn');
 const loginMessage = document.getElementById('loginMessage');
 
-// Optional: restrict to a company domain
-const ALLOWED_DOMAIN = ''; // set to "@yourcompany.com" if needed
+// If you want to restrict to a company domain, put it here like '@company.com'.
+// Leave it as '' to allow any Google account.
+const ALLOWED_DOMAIN = '';
 
 function showLogin() {
+  if (!loginScreen || !app) return;
   loginScreen.classList.remove('hidden');
   app.classList.add('hidden');
 }
 
 function showApp() {
+  if (!loginScreen || !app) return;
   loginScreen.classList.add('hidden');
   app.classList.remove('hidden');
 }
@@ -38,7 +49,41 @@ async function checkAuth() {
   if (ALLOWED_DOMAIN && !email.endsWith(ALLOWED_DOMAIN)) {
     loginMessage.textContent = 'This email is not allowed for this app.';
     await supabaseClient.auth.signOut();
-    showLogin()
+    showLogin();
+    return;
+  }
+
+  showApp();
+}
+
+// Google login button click
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener('click', async () => {
+    loginMessage.textContent = 'Redirecting to Google...';
+
+    const { error } = await supabaseClient.auth.signInWithOAuth({
+      provider: 'google',
+      // this makes sure it comes back to your current site
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) {
+      loginMessage.textContent = 'Login error: ' + error.message;
+    }
+  });
+}
+
+// Listen for auth state changes (after redirect back)
+supabaseClient.auth.onAuthStateChange((_event, _session) => {
+  checkAuth();
+});
+
+// Initial check on page load
+checkAuth();
+
+// ===== End Supabase Auth Setup =====
 
 const labelInput = document.getElementById('labelInput');
 const chooseFileButton = document.getElementById('chooseFileButton');

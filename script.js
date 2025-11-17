@@ -37,7 +37,8 @@ function showApp() {
 async function checkAuth() {
   const { data, error } = await supabaseClient.auth.getUser();
 
-  if (error) {
+  // If there's an error OTHER than "Auth session missing!", show it
+  if (error && error.message !== 'Auth session missing!') {
     console.log('Auth error:', error);
     if (loginMessage) {
       loginMessage.textContent = 'Auth error: ' + error.message;
@@ -46,8 +47,11 @@ async function checkAuth() {
     return;
   }
 
-  if (!data.user) {
-    // Not logged in yet
+  // If there's no user yet, just show the login screen with no error text
+  if (!data || !data.user) {
+    if (loginMessage) {
+      loginMessage.textContent = '';
+    }
     showLogin();
     return;
   }

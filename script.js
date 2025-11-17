@@ -1,8 +1,8 @@
 // ===== Supabase Auth Setup =====
 
 // Put YOUR real values here:
-const SUPABASE_URL = 'https://YOURPROJECTID.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_YOUR_KEY_HERE';
+const SUPABASE_URL = 'https://jmphpdcacxqznthczhlz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptcGhwZGNhY3hxem50aGN6aGx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzg3MjIsImV4cCI6MjA3ODk1NDcyMn0.YsgnUFi2mGVs8acRWZO5G8JYVTdf0GjBaNf31MvlCDE';
 
 // Make sure the Supabase library exists
 if (!window.supabase) {

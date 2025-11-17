@@ -1,3 +1,45 @@
+// ===== Supabase Auth Setup =====
+
+// Replace these with your real values from Supabase Settings → API
+const SUPABASE_URL = 'https://jmphpdcacxqznthczhlz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_GEjsx9hhP5ti88OHKkTvEw_3-GiQ_Iy';
+
+const { createClient } = window.supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginScreen = document.getElementById('login-screen');
+const app = document.getElementById('app');
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+const loginMessage = document.getElementById('loginMessage');
+
+// Optional: restrict to a company domain
+const ALLOWED_DOMAIN = ''; // set to "@yourcompany.com" if needed
+
+function showLogin() {
+  loginScreen.classList.remove('hidden');
+  app.classList.add('hidden');
+}
+
+function showApp() {
+  loginScreen.classList.add('hidden');
+  app.classList.remove('hidden');
+}
+
+async function checkAuth() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (error || !data.user) {
+    showLogin();
+    return;
+  }
+
+  const email = data.user.email || '';
+
+  if (ALLOWED_DOMAIN && !email.endsWith(ALLOWED_DOMAIN)) {
+    loginMessage.textContent = 'This email is not allowed for this app.';
+    await supabaseClient.auth.signOut();
+    showLogin()
+
 const labelInput = document.getElementById('labelInput');
 const chooseFileButton = document.getElementById('chooseFileButton');
 const fileNameSpan = document.getElementById('fileName');

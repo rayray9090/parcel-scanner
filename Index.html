@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parcel Scanner Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-circle">P</div>
+        <div class="logo-text">
+          <div class="logo-title">ParcelScan</div>
+          <div class="logo-subtitle">Front Desk</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section-title">Main</div>
+        <button class="nav-item nav-item-active">
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" disabled>
+          <span>Analytics (later)</span>
+        </button>
+        <button class="nav-item" disabled>
+          <span>Settings (later)</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="small-label">Signed in as</div>
+        <div class="user-name">Front Desk</div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1>Package Dashboard</h1>
+          <p class="subtitle">Scan incoming packages and notify recipients.</p>
+        </div>
+      </header>
+
+      <!-- Content -->
+      <section class="content">
+        <!-- Scan panel -->
+        <div class="card scan-card">
+          <div class="card-header">
+            <div>
+              <h2>Scan New Package</h2>
+              <p class="subtitle">Upload a label photo and log the package.</p>
+            </div>
+          </div>
+
+          <div class="scan-body">
+            <div class="upload-area">
+              <input
+                type="file"
+                id="labelInput"
+                accept="image/*"
+                class="hidden-file-input"
+              />
+              <button id="chooseFileButton" class="btn-secondary">
+                Choose Label Photo
+              </button>
+              <span id="fileName" class="file-name">No file chosen</span>
+            </div>
+
+            <button id="scanButton" class="btn-primary">
+              Scan & Log Package
+            </button>
+          </div>
+
+          <div class="scan-status" id="scanStatus">
+            Ready to scan.
+          </div>
+        </div>
+
+        <!-- Recent info cards -->
+        <div class="metrics-grid">
+          <div class="card metric-card">
+            <div class="metric-label">Last scan</div>
+            <div class="metric-value" id="lastScanName">–</div>
+            <div class="metric-sub" id="lastScanTime">No scans yet</div>
+          </div>
+
+          <div class="card metric-card">
+            <div class="metric-label">Today’s packages</div>
+            <div class="metric-value" id="todayCount">0</div>
+            <div class="metric-sub">Logged this session</div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card table-card">
+          <div class="card-header">
+            <div>
+              <h2>Package Log</h2>
+              <p class="subtitle">Newest packages at the top.</p>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Recipient</th>
+                  <th>Email</th>
+                  <th>Carrier</th>
+                  <th>Tracking #</th>
+                  <th>Received</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="packageTableBody">
+                <!-- rows added by script.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

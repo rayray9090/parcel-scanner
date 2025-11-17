@@ -358,3 +358,12 @@ tbody tr:hover {
   color: #9ca3af;
   margin-top: 8px;
 }
+.login-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #1e293b;
+  background: #020617;
+  color: #e5e7eb;
+  margin-top: 8px;
+}

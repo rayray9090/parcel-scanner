@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Parcel Scanner Dashboard</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="script.js"></script>
 </head>
 <body>
   <!-- Login screen -->
@@ -26,9 +25,10 @@
         class="login-input"
       />
 
-      <button id="simpleLoginBtn" class="btn-primary">
+      <button class="btn-primary" onclick="handleLogin()">
         Sign in
       </button>
+
 
       <p id="loginMessage" class="login-message"></p>
     </div>
@@ -154,12 +154,11 @@
             </table>
           </div>
         </div>
-      </section>
-        </main>
-  </div> <!-- end .app-shell -->
-  </div> <!-- end #app -->
+              </section>
+      </main>
+    </div> <!-- end #app -->
 
-  <script src="script.js"></script>
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>
 

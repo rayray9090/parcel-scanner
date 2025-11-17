@@ -1,3 +1,5 @@
+document.addEventListener('DOMContentLoaded', () => {
+
 // ===== Simple username/password gate (NOT strong security) =====
 
 // YOUR login details (case-sensitive)
@@ -152,4 +154,6 @@ function formatDateTime(value) {
   if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleString();
 }
+
+});
 

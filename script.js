@@ -35,7 +35,47 @@ function showApp() {
   loginScreen.classList.add('hidden');
   app.classList.remove('hidden');
 }
+async function handleRedirectFromSupabase() {
+  try {
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    const errorDescription = url.searchParams.get('error_description');
 
+    // If Google/Supabase sent an error back
+    if (errorDescription && loginMessage) {
+      loginMessage.textContent = 'Auth error: ' + errorDescription;
+      console.log('Auth error from redirect:', errorDescription);
+      return;
+    }
+
+    // If there is no code in the URL, nothing to do
+    if (!code) {
+      return;
+    }
+
+    // Exchange the code in the URL for a Supabase session
+    const { data, error } = await supabaseClient.auth.exchangeCodeForSession(
+      window.location.href
+    );
+
+    if (error) {
+      console.log('Exchange error:', error);
+      if (loginMessage) {
+        loginMessage.textContent = 'Auth error: ' + error.message;
+      }
+      return;
+    }
+
+    // Clean up the URL (remove ?code=... from the address bar)
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.origin + window.location.pathname
+    );
+  } catch (err) {
+    console.log('handleRedirectFromSupabase error:', err);
+  }
+}
 async function checkAuth() {
   const { data, error } = await supabaseClient.auth.getUser();
 

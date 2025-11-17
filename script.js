@@ -1,105 +1,44 @@
-// ===== Supabase Auth Setup =====
+// ===== Simple username/password gate (NOT strong security) =====
 
-// Your real Supabase values
-const SUPABASE_URL = 'https://jmphpdcacxqznthczhlz.supabase.co';
-const SUPABASE_ANON_KEY =
-  'sb_publishable_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptcGhwZGNhY3hxem50aGN6aGx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMzNzg3MjIsImV4cCI6MjA3ODk1NDcyMn0.YsgnUFi2mGVs8acRWZO5G8JYVTdf0GjBaNf31MvlCDE';
-
-if (!window.supabase) {
-  console.error('Supabase JS library not loaded');
-}
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+// Change these to whatever you want
+const VALID_USERNAME = 'frontdesk';
+const VALID_PASSWORD = 'parcel123';
 
 const loginScreen = document.getElementById('login-screen');
 const app = document.getElementById('app');
-const googleLoginBtn = document.getElementById('googleLoginBtn');
+const loginUsername = document.getElementById('loginUsername');
+const loginPassword = document.getElementById('loginPassword');
+const simpleLoginBtn = document.getElementById('simpleLoginBtn');
 const loginMessage = document.getElementById('loginMessage');
 
-// Allow any Google account for now
-const ALLOWED_DOMAIN = '';
-
 function showLogin() {
-  if (!loginScreen || !app) return;
   loginScreen.classList.remove('hidden');
   app.classList.add('hidden');
 }
 
 function showApp() {
-  if (!loginScreen || !app) return;
   loginScreen.classList.add('hidden');
   app.classList.remove('hidden');
 }
 
-async function checkAuth() {
-  const { data, error } = await supabaseClient.auth.getUser();
+// Start on login screen
+showLogin();
 
-  // If there's an error OTHER than "Auth session missing!", show it
-  if (error && error.message !== 'Auth session missing!') {
-    console.log('Auth error:', error);
-    if (loginMessage) {
-      loginMessage.textContent = 'Auth error: ' + error.message;
-    }
-    showLogin();
-    return;
-  }
+if (simpleLoginBtn) {
+  simpleLoginBtn.addEventListener('click', () => {
+    const user = loginUsername.value.trim();
+    const pass = loginPassword.value;
 
-  // If there's no user yet, just show the login screen with no error text
-  if (!data || !data.user) {
-    if (loginMessage) {
+    if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
       loginMessage.textContent = '';
-    }
-    showLogin();
-    return;
-  }
-
-  const email = data.user.email || '';
-
-  if (ALLOWED_DOMAIN && !email.endsWith(ALLOWED_DOMAIN)) {
-    if (loginMessage) {
-      loginMessage.textContent = 'This email is not allowed for this app.';
-    }
-    await supabaseClient.auth.signOut();
-    showLogin();
-    return;
-  }
-
-  // Logged in and allowed
-  showApp();
-}
-
-// Handle click on "Sign in with Google"
-if (googleLoginBtn) {
-  googleLoginBtn.addEventListener('click', async () => {
-    if (loginMessage) {
-      loginMessage.textContent = 'Redirecting to Google...';
-    }
-
-    const { error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-
-    if (error && loginMessage) {
-      loginMessage.textContent = 'Login error: ' + error.message;
+      showApp();
+    } else {
+      loginMessage.textContent = 'Invalid username or password.';
     }
   });
 }
 
-// When Supabase auth state changes (e.g. after redirect)
-supabaseClient.auth.onAuthStateChange((_event, _session) => {
-  checkAuth();
-});
-
-// Initial check on page load
-checkAuth();
-
-// ===== End Supabase Auth Setup =====
+// ===== End simple gate =====
 
 // ===== Existing dashboard logic =====
 

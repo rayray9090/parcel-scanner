@@ -6,37 +6,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Login screen -->
-  <div id="login-screen" class="login-screen">
-    <div class="login-card">
-      <h1>ParcelScan</h1>
-      <p>Please sign in to continue.</p>
-
-      <input
-        id="loginUsername"
-        type="text"
-        placeholder="Username"
-        class="login-input"
-      />
-      <input
-        id="loginPassword"
-        type="password"
-        placeholder="Password"
-        class="login-input"
-      />
-
-   <button class="btn-primary" onclick="handleLogin()">
-  Sign in
-</button>
-
-      <p id="loginMessage" class="login-message"></p>
-    </div>
-  </div>
-
-  <!-- App (hidden until logged in) -->
-  <div id="app" class="hidden">
-    <!-- 💡 keep ALL your existing sidebar + dashboard markup inside this #app div -->
-
+  <div id="app">
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -153,11 +123,10 @@
             </table>
           </div>
         </div>
-              </section>
-      </main>
-    </div> <!-- end #app -->
+      </section>
+    </main>
+  </div>
 
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>
-

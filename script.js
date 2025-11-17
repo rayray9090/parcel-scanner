@@ -35,18 +35,6 @@ function showApp() {
   loginScreen.classList.add('hidden');
   app.classList.remove('hidden');
 }
-async function handleRedirectFromSupabase() {
-  try {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get('code');
-    const errorDescription = url.searchParams.get('error_description');
-
-    // If Google/Supabase sent an error back
-    if (errorDescription && loginMessage) {
-      loginMessage.textContent = 'Auth error: ' + errorDescription;
-      console.log('Auth error from redirect:', errorDescription);
-      return;
-    }
 
     // If there is no code in the URL, nothing to do
     if (!code) {
@@ -121,8 +109,8 @@ supabaseClient.auth.onAuthStateChange((_event, _session) => {
 });
 
 // Initial check on page load
-handleRedirectFromSupabase().then(() => {
-  checkAuth();
+checkAuth();
+
 });
 
 // ===== End Supabase Auth Setup =====

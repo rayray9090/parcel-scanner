@@ -1,8 +1,8 @@
 // ===== Simple username/password gate (NOT strong security) =====
 
-// Change these to whatever you want
-const VALID_USERNAME = 'frontdesk';
-const VALID_PASSWORD = 'parcel123';
+// YOUR login details (case-sensitive)
+const VALID_USERNAME = 'Security';
+const VALID_PASSWORD = 'Replit1001';
 
 const loginScreen = document.getElementById('login-screen');
 const app = document.getElementById('app');
@@ -39,6 +39,7 @@ if (simpleLoginBtn) {
 }
 
 // ===== End simple gate =====
+
 
 // ===== Existing dashboard logic =====
 

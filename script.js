@@ -1,24 +1,22 @@
-document.addEventListener('DOMContentLoaded', () => {
-
-// ===== Simple username/password gate (NOT strong security) =====
+// ===== Simple username/password gate =====
 
 // YOUR login details (case-sensitive)
 const VALID_USERNAME = 'Security';
 const VALID_PASSWORD = 'Replit1001';
 
+// Get login-related elements
 const loginScreen = document.getElementById('login-screen');
 const app = document.getElementById('app');
-const loginUsername = document.getElementById('loginUsername');
-const loginPassword = document.getElementById('loginPassword');
-const simpleLoginBtn = document.getElementById('simpleLoginBtn');
 const loginMessage = document.getElementById('loginMessage');
 
 function showLogin() {
+  if (!loginScreen || !app) return;
   loginScreen.classList.remove('hidden');
   app.classList.add('hidden');
 }
 
 function showApp() {
+  if (!loginScreen || !app) return;
   loginScreen.classList.add('hidden');
   app.classList.remove('hidden');
 }
@@ -26,21 +24,26 @@ function showApp() {
 // Start on login screen
 showLogin();
 
-if (simpleLoginBtn) {
-  simpleLoginBtn.addEventListener('click', () => {
-    const user = loginUsername.value.trim();
-    const pass = loginPassword.value;
+// This function is called directly from index.html: onclick="handleLogin()"
+function handleLogin() {
+  const usernameInput = document.getElementById('loginUsername');
+  const passwordInput = document.getElementById('loginPassword');
 
-    if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
-      if (loginMessage) loginMessage.textContent = '';
-      showApp();
-    } else {
-      if (loginMessage) loginMessage.textContent = 'Invalid username or password.';
+  const user = usernameInput ? usernameInput.value.trim() : '';
+  const pass = passwordInput ? passwordInput.value : '';
+
+  if (user === VALID_USERNAME && pass === VALID_PASSWORD) {
+    if (loginMessage) loginMessage.textContent = '';
+    showApp();
+  } else {
+    if (loginMessage) {
+      loginMessage.textContent = 'Invalid username or password.';
     }
-  });
+  }
 }
 
-// ===== End simple gate =====
+// Expose handleLogin globally so onclick can see it
+window.handleLogin = handleLogin;
 
 // ===== Existing dashboard logic =====
 
@@ -154,6 +157,3 @@ function formatDateTime(value) {
   if (Number.isNaN(d.getTime())) return '-';
   return d.toLocaleString();
 }
-
-});
-

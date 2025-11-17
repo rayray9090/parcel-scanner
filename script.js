@@ -35,12 +35,16 @@ if (scanButton) {
     scanStatus.textContent = 'Contacting server...';
 
     try {
-      const formData = new FormData();
-      formData.append('label', file);
+      // 1) Turn file into base64 string
+      const base64 = await fileToBase64(file);
 
+      // 2) Send JSON to backend
       const response = await fetch('/api/scan', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: base64
+        })
       });
 
       const data = await response.json();
@@ -51,7 +55,7 @@ if (scanButton) {
       } else {
         scanStatus.textContent = data.email_sent
           ? 'Package scanned and email notification sent.'
-          : 'Package scanned (no email found for this recipient).';
+          : 'Package scanned.';
 
         if (data.package) {
           packages.unshift(data.package);
@@ -66,6 +70,20 @@ if (scanButton) {
       scanButton.disabled = false;
       scanButton.textContent = 'Scan & Log Package';
     }
+  });
+}
+
+// helper to convert file to base64
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result; // "data:image/jpeg;base64,AAAA..."
+      const base64 = result.split(',')[1]; // remove the "data:image..." prefix
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
 }
 

@@ -1,6 +1,8 @@
 // api/scan.js – Vercel serverless function
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -74,16 +76,55 @@ module.exports = async (req, res) => {
     }
 
     // Model returns JSON as a string in message.content
+    
     const parsed = JSON.parse(openaiJson.choices[0].message.content);
 
-    const pkg = {
-      recipient_name: parsed.recipient_name || null,
-      recipient_email: parsed.recipient_email || null,
-      carrier: parsed.carrier || null,
-      tracking_number: parsed.tracking_number || null,
-      time_received: new Date().toISOString(),
-      status: 'Waiting for pickup'
-    };
+// Try to look up email from Supabase directory if we have a name
+let emailFromDirectory = null;
+
+if (
+  parsed.recipient_name &&
+  SUPABASE_URL &&
+  SUPABASE_SERVICE_KEY
+) {
+  try {
+    const queryName = encodeURIComponent(parsed.recipient_name);
+
+    const directoryResponse = await fetch(
+      `${SUPABASE_URL}/rest/v1/directory?name=eq.${queryName}&select=email&limit=1`,
+      {
+        headers: {
+          apikey: SUPABASE_SERVICE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    const rows = await directoryResponse.json();
+
+    if (directoryResponse.ok && Array.isArray(rows) && rows.length > 0) {
+      emailFromDirectory = rows[0].email || null;
+    } else {
+      console.log('No directory match for name:', parsed.recipient_name, rows);
+    }
+  } catch (dirErr) {
+    console.error('Error looking up directory email:', dirErr);
+  }
+}
+
+const pkg = {
+  recipient_name: parsed.recipient_name || null,
+
+  // Prefer: email on label → directory email → null
+  recipient_email:
+    parsed.recipient_email || emailFromDirectory || null,
+
+  carrier: parsed.carrier || null,
+  tracking_number: parsed.tracking_number || null,
+  time_received: new Date().toISOString(),
+  status: 'Waiting for pickup'
+};
 
     res.status(200).json({
       success: true,

@@ -27,10 +27,9 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Turn base64 into a data URL for the vision model
     const imageDataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
-    // 1) Call OpenAI Vision to read the label
+    // 1) Call OpenAI with strict JSON schema
     const openaiResponse = await fetch(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -44,33 +43,15 @@ module.exports = async (req, res) => {
           messages: [
             {
               role: 'system',
-              content: `
-You are a mailroom assistant that reads shipping labels and ONLY returns JSON.
-
-Your JSON object MUST have:
-- recipient_name
-- recipient_email
-- carrier
-- tracking_number
-
-Rules:
-- If the email is printed on the label, extract it. If not printed, use null.
-- For carrier, infer from any logos, branding, or tracking format:
-  - "UPS", brown logo, 1Z... tracking → carrier = "UPS"
-  - "USPS", eagle logo, "United States Postal Service" → carrier = "USPS"
-  - "FedEx" logo, purple/orange → carrier = "FedEx"
-  - Amazon logo / "AMZL" / Amazon-style tracking → carrier = "Amazon"
-- If you truly cannot tell, use null for carrier.
-- If something is unknown, set it to null.
-Return ONLY valid JSON, no extra text.
-`
+              content:
+                'You read shipping labels and return ONLY JSON that matches the given schema.'
             },
             {
               role: 'user',
               content: [
                 {
                   type: 'text',
-                  text: 'Extract the shipping info from this label and return JSON only.'
+                  text: 'Extract the shipping info from this label.'
                 },
                 {
                   type: 'image_url',
@@ -79,7 +60,25 @@ Return ONLY valid JSON, no extra text.
               ]
             }
           ],
-          max_tokens: 300
+          max_tokens: 300,
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              name: 'package',
+              strict: true,
+              schema: {
+                type: 'object',
+                properties: {
+                  recipient_name: { type: 'string', nullable: true },
+                  recipient_email: { type: 'string', nullable: true },
+                  carrier: { type: 'string', nullable: true },
+                  tracking_number: { type: 'string', nullable: true }
+                },
+                required: ['recipient_name', 'carrier', 'tracking_number'],
+                additionalProperties: false
+              }
+            }
+          }
         })
       }
     );
@@ -100,7 +99,9 @@ Return ONLY valid JSON, no extra text.
 
     let parsed;
     try {
-      parsed = JSON.parse(openaiJson.choices[0].message.content);
+      const content = openaiJson.choices[0].message.content;
+      // content should be a JSON string because of response_format
+      parsed = typeof content === 'string' ? JSON.parse(content) : content;
     } catch (e) {
       console.error('Failed to parse JSON from model:', openaiJson);
       res.status(500).json({
@@ -114,13 +115,11 @@ Return ONLY valid JSON, no extra text.
     // 2) Look up email from Supabase directory if we have a name
     let emailFromDirectory = null;
 
-    if (
-      parsed.recipient_name &&
-      SUPABASE_URL &&
-      SUPABASE_SERVICE_KEY
-    ) {
+    if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
       try {
-        // adjust "directory" and "name" if your table/column names are different
+        // Adjust table name & column if needed:
+        // table: directory
+        // name column: name
         const queryName = encodeURIComponent(parsed.recipient_name);
 
         const directoryResponse = await fetch(
@@ -148,7 +147,6 @@ Return ONLY valid JSON, no extra text.
 
     const pkg = {
       recipient_name: parsed.recipient_name || null,
-      // Prefer: email on label → directory email → null
       recipient_email:
         parsed.recipient_email || emailFromDirectory || null,
       carrier: parsed.carrier || null,
@@ -159,7 +157,7 @@ Return ONLY valid JSON, no extra text.
 
     res.status(200).json({
       success: true,
-      email_sent: false, // can wire real email later
+      email_sent: false,
       package: pkg
     });
   } catch (err) {

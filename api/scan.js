@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
                   carrier: { type: 'string', nullable: true },
                   tracking_number: { type: 'string', nullable: true }
                 },
-                required: ['recipient_name', 'carrier', 'tracking_number'],
+                required: ['recipient_name', 'recipient_email', 'carrier', 'tracking_number'],
                 additionalProperties: false
               }
             }

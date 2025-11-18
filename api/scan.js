@@ -112,38 +112,54 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // 2) Look up email from Supabase directory if we have a name
-    let emailFromDirectory = null;
+   // 2) Look up email from Supabase directory if we have a name
+let emailFromDirectory = null;
+let directoryDebug = null; // 👈 add this so we can inspect what happened
 
-    if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-      try {
-        // Adjust table name & column if needed:
-        // table: directory
-        // name column: name
-        const queryName = encodeURIComponent(parsed.recipient_name);
+if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+  try {
+    // table: directory
+    // name column: full_name
+    const rawName = parsed.recipient_name.trim();
 
-        const directoryResponse = await fetch(
-          `${SUPABASE_URL}/rest/v1/directory?name=ilike.${queryName}&select=email&limit=1`,
-          {
-            headers: {
-              apikey: SUPABASE_SERVICE_KEY,
-              Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
+    // Fuzzy match: *Name* so "Brian", "Brian Pool", "Brian R. Pool" still have a chance
+    const pattern = `*${rawName}*`;
+    const encodedPattern = encodeURIComponent(pattern);
 
-        const rows = await directoryResponse.json();
+    const urlUsed = `${SUPABASE_URL}/rest/v1/directory?full_name=ilike.${encodedPattern}&select=email,full_name&limit=3`;
 
-        if (directoryResponse.ok && Array.isArray(rows) && rows.length > 0) {
-          emailFromDirectory = rows[0].email || null;
-        } else {
-          console.log('No directory match for name:', parsed.recipient_name, rows);
-        }
-      } catch (dirErr) {
-        console.error('Error looking up directory email:', dirErr);
+    const directoryResponse = await fetch(urlUsed, {
+      headers: {
+        apikey: SUPABASE_SERVICE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json'
       }
+    });
+
+    const rows = await directoryResponse.json();
+
+    // Save debug info so we can inspect in the client
+    directoryDebug = {
+      searched_name: rawName,
+      url_used: urlUsed,
+      status: directoryResponse.status,
+      rows
+    };
+
+    if (directoryResponse.ok && Array.isArray(rows) && rows.length > 0) {
+      // Just take the first match for now
+      emailFromDirectory = rows[0].email || null;
+    } else {
+      console.log('No directory match for name:', rawName, rows);
     }
+  } catch (dirErr) {
+    console.error('Error looking up directory email:', dirErr);
+    directoryDebug = {
+      error: String(dirErr),
+      searched_name: parsed.recipient_name
+    };
+  }
+}
 
     const pkg = {
       recipient_name: parsed.recipient_name || null,
@@ -159,6 +175,7 @@ module.exports = async (req, res) => {
       success: true,
       email_sent: false,
       package: pkg
+      directory_debug: directoryDebug // 👈 temporary debug
     });
   } catch (err) {
     console.error('Server error:', err);

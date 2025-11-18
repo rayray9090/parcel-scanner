@@ -29,7 +29,7 @@ module.exports = async (req, res) => {
 
     const imageDataUrl = `data:image/jpeg;base64,${imageBase64}`;
 
-    // 1) Call OpenAI with strict JSON schema
+    // ============= 1) Call OpenAI with strict JSON schema =============
     const openaiResponse = await fetch(
       'https://api.openai.com/v1/chat/completions',
       {
@@ -74,7 +74,12 @@ module.exports = async (req, res) => {
                   carrier: { type: 'string', nullable: true },
                   tracking_number: { type: 'string', nullable: true }
                 },
-                required: ['recipient_name', 'recipient_email', 'carrier', 'tracking_number'],
+                required: [
+                  'recipient_name',
+                  'recipient_email',
+                  'carrier',
+                  'tracking_number'
+                ],
                 additionalProperties: false
               }
             }
@@ -100,7 +105,7 @@ module.exports = async (req, res) => {
     let parsed;
     try {
       const content = openaiJson.choices[0].message.content;
-      // content should be a JSON string because of response_format
+      // content should already be JSON because of response_format
       parsed = typeof content === 'string' ? JSON.parse(content) : content;
     } catch (e) {
       console.error('Failed to parse JSON from model:', openaiJson);
@@ -112,59 +117,55 @@ module.exports = async (req, res) => {
       return;
     }
 
-   // 2) Look up email from Supabase directory if we have a name
-let emailFromDirectory = null;
-let directoryDebug = null; // 👈 add this so we can inspect what happened
+    // ============= 2) Supabase directory lookup =============
+    let emailFromDirectory = null;
+    let directoryDebug = null;
 
-if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-  try {
-    // table: directory
-    // name column: full_name
-    const rawName = parsed.recipient_name.trim();
+    if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+      try {
+        const rawName = parsed.recipient_name.trim();
 
-    // Fuzzy match: *Name* so "Brian", "Brian Pool", "Brian R. Pool" still have a chance
-    const pattern = `*${rawName}*`;
-    const encodedPattern = encodeURIComponent(pattern);
+        // Fuzzy match: *Name*
+        const pattern = `*${rawName}*`;
+        const encodedPattern = encodeURIComponent(pattern);
 
-    const urlUsed = `${SUPABASE_URL}/rest/v1/directory?full_name=ilike.${encodedPattern}&select=email,full_name&limit=3`;
+        const urlUsed = `${SUPABASE_URL}/rest/v1/directory?full_name=ilike.${encodedPattern}&select=email,full_name&limit=3`;
 
-    const directoryResponse = await fetch(urlUsed, {
-      headers: {
-        apikey: SUPABASE_SERVICE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json'
+        const directoryResponse = await fetch(urlUsed, {
+          headers: {
+            apikey: SUPABASE_SERVICE_KEY,
+            Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        const rows = await directoryResponse.json();
+
+        directoryDebug = {
+          searched_name: rawName,
+          url_used: urlUsed,
+          status: directoryResponse.status,
+          rows
+        };
+
+        if (directoryResponse.ok && Array.isArray(rows) && rows.length > 0) {
+          emailFromDirectory = rows[0].email || null;
+        } else {
+          console.log('No directory match for name:', rawName, rows);
+        }
+      } catch (dirErr) {
+        console.error('Error looking up directory email:', dirErr);
+        directoryDebug = {
+          error: String(dirErr),
+          searched_name: parsed.recipient_name
+        };
       }
-    });
-
-    const rows = await directoryResponse.json();
-
-    // Save debug info so we can inspect in the client
-    directoryDebug = {
-      searched_name: rawName,
-      url_used: urlUsed,
-      status: directoryResponse.status,
-      rows
-    };
-
-    if (directoryResponse.ok && Array.isArray(rows) && rows.length > 0) {
-      // Just take the first match for now
-      emailFromDirectory = rows[0].email || null;
-    } else {
-      console.log('No directory match for name:', rawName, rows);
     }
-  } catch (dirErr) {
-    console.error('Error looking up directory email:', dirErr);
-    directoryDebug = {
-      error: String(dirErr),
-      searched_name: parsed.recipient_name
-    };
-  }
-}
 
+    // ============= 3) Build final package object =============
     const pkg = {
       recipient_name: parsed.recipient_name || null,
-      recipient_email:
-        parsed.recipient_email || emailFromDirectory || null,
+      recipient_email: parsed.recipient_email || emailFromDirectory || null,
       carrier: parsed.carrier || null,
       tracking_number: parsed.tracking_number || null,
       time_received: new Date().toISOString(),
@@ -174,8 +175,8 @@ if (parsed.recipient_name && SUPABASE_URL && SUPABASE_SERVICE_KEY) {
     res.status(200).json({
       success: true,
       email_sent: false,
-      package: pkg
-      directory_debug: directoryDebug // 👈 temporary debug
+      package: pkg,
+      directory_debug: directoryDebug
     });
   } catch (err) {
     console.error('Server error:', err);
